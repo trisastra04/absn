@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Salat - Scan QR</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <header>
+        <h1>📷 Absensi Salat Siswa</h1>
+    </header>
+
+    <main>
+        <label for="salat">Pilih Salat:</label>
+        <select id="salat">
+            <option value="Subuh">Subuh</option>
+            <option value="Dzuhur">Dzuhur</option>
+            <option value="Ashar">Ashar</option>
+            <option value="Maghrib">Maghrib</option>
+            <option value="Isya">Isya</option>
+        </select>
+
+        <div id="reader" style="width: 300px;"></div>
+
+        <div id="result"></div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
