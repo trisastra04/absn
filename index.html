@@ -57,51 +57,72 @@
     </style>
 </head>
 <body class="antialiased text-slate-800">
-    <div id="app-container" class="flex h-screen bg-slate-100">
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 flex-shrink-0 bg-slate-800 text-white flex flex-col">
-            <div class="h-16 flex items-center justify-center px-4 border-b border-slate-700">
-                <div class="flex items-center space-x-3">
-                    <svg class="h-8 w-8 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
-                    <h1 class="text-xl font-bold">Jurnal Guru</h1>
-                </div>
-            </div>
-            <nav class="flex-1 px-4 py-6 space-y-2">
-                <button id="nav-jadwal" class="nav-btn active w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('jadwal')">
-                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
-                    <span>Jadwal Mengajar</span>
-                </button>
-                <button id="nav-penilaian" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('penilaian')">
-                    <i data-lucide="notebook-pen" class="w-5 h-5"></i>
-                    <span>Penilaian Siswa</span>
-                </button>
-                <button id="nav-absensi" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('absensi')">
-                   <i data-lucide="user-check" class="w-5 h-5"></i>
-                    <span>Absensi Siswa</span>
-                </button>
-                <div class="pt-4 mt-4 border-t border-slate-700">
-                    <button id="nav-pengaturan" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('pengaturan')">
-                       <i data-lucide="settings" class="w-5 h-5"></i>
-                        <span>Pengaturan</span>
-                    </button>
-                </div>
-            </nav>
-        </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
-            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-                 <h2 id="header-title" class="text-lg font-semibold text-slate-700">Jadwal Mengajar</h2>
-                 <div id="auth-status" class="text-xs text-slate-500">Menghubungkan...</div>
-            </header>
-            
-            <main class="flex-1 overflow-y-auto p-6">
-                <!-- Content Panes -->
-                <div id="content-jadwal" class="view-content fade-in"></div>
-                <div id="content-penilaian" class="view-content fade-in hidden"></div>
-                <div id="content-absensi" class="view-content fade-in hidden"></div>
-                <div id="content-pengaturan" class="view-content fade-in hidden"></div>
-            </main>
+    <!-- Login Screen -->
+    <div id="login-screen" class="flex items-center justify-center h-screen bg-slate-100">
+        <div class="text-center p-8 bg-white rounded-xl shadow-lg max-w-sm mx-auto">
+            <div class="flex items-center justify-center space-x-3 mb-6">
+                <svg class="h-10 w-10 text-indigo-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                <h1 class="text-3xl font-bold text-slate-800">Jurnal Guru</h1>
+            </div>
+            <p class="text-slate-600 mb-8">Silakan login dengan akun Google Anda untuk melanjutkan.</p>
+            <button id="login-btn" class="w-full flex items-center justify-center gap-3 bg-white border border-slate-300 text-slate-700 font-semibold py-3 px-4 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" preserveAspectRatio="xMidYMid" viewBox="0 0 256 262"><path fill="#4285F4" d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.686H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027"/><path fill="#34A853" d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1"/><path fill="#FBBC05" d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782"/><path fill="#EB4335" d="M130.55 50.479c24.499 0 41.935 10.39 51.478 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251"/></svg>
+                <span>Login dengan Akun Google</span>
+            </button>
+        </div>
+    </div>
+    
+    <div id="main-app-wrapper" class="hidden">
+        <div id="app-container" class="flex h-screen bg-slate-100">
+            <!-- Sidebar Navigation -->
+            <aside class="w-64 flex-shrink-0 bg-slate-800 text-white flex flex-col">
+                <div class="h-16 flex items-center justify-center px-4 border-b border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <svg class="h-8 w-8 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                        <h1 class="text-xl font-bold">Jurnal Guru</h1>
+                    </div>
+                </div>
+                <nav class="flex-1 px-4 py-6 space-y-2">
+                    <button id="nav-jadwal" class="nav-btn active w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('jadwal')">
+                        <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                        <span>Jadwal Mengajar</span>
+                    </button>
+                    <button id="nav-penilaian" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('penilaian')">
+                        <i data-lucide="notebook-pen" class="w-5 h-5"></i>
+                        <span>Penilaian Siswa</span>
+                    </button>
+                    <button id="nav-absensi" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('absensi')">
+                       <i data-lucide="user-check" class="w-5 h-5"></i>
+                        <span>Absensi Siswa</span>
+                    </button>
+                    <div class="pt-4 mt-4 border-t border-slate-700">
+                        <button id="nav-pengaturan" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('pengaturan')">
+                           <i data-lucide="settings" class="w-5 h-5"></i>
+                            <span>Pengaturan</span>
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col overflow-hidden">
+                <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+                     <h2 id="header-title" class="text-lg font-semibold text-slate-700">Jadwal Mengajar</h2>
+                     <div id="auth-status" class="flex items-center gap-3 text-sm text-slate-600">
+                        <span id="user-display-name">Menghubungkan...</span>
+                        <button id="logout-btn" class="hidden bg-red-500 text-white font-semibold text-xs py-1 px-3 rounded-md hover:bg-red-600">Logout</button>
+                     </div>
+                </header>
+                
+                <main class="flex-1 overflow-y-auto p-6">
+                    <!-- Content Panes -->
+                    <div id="content-jadwal" class="view-content fade-in"></div>
+                    <div id="content-penilaian" class="view-content fade-in hidden"></div>
+                    <div id="content-absensi" class="view-content fade-in hidden"></div>
+                    <div id="content-pengaturan" class="view-content fade-in hidden"></div>
+                </main>
+            </div>
         </div>
     </div>
     
@@ -122,8 +143,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, getDoc, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, getDoc, query, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE CONFIG ---
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -144,10 +165,8 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
-        } catch (error)
-        {
+        } catch (error) {
             console.error("Firebase initialization failed:", error);
-            document.getElementById('auth-status').textContent = 'Error: Gagal inisialisasi Firebase.';
         }
 
         // --- APP STATE ---
@@ -160,6 +179,7 @@
 
         // --- UI FUNCTIONS ---
         function showToast(message, isSuccess = true) {
+            if(!ui.toast) return;
             ui.toast.textContent = message;
             ui.toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-all duration-300 ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`;
             ui.toast.classList.remove('opacity-0', 'translate-y-2');
@@ -169,6 +189,7 @@
         }
 
         function showConfirm({ title = 'Konfirmasi', message, okText = 'Ya, Lanjutkan', onConfirm }) {
+            if(!ui.confirmModal) return;
             ui.confirmModal.title.textContent = title;
             ui.confirmModal.message.textContent = message;
             ui.confirmModal.btnOk.textContent = okText;
@@ -342,7 +363,7 @@
         
         function renderPengaturan() {
             if (!ui.pengaturan) return;
-            const { daftarKelas, daftarSiswa, panelDaftarSiswa, namaKelasTerpilih, jadwalTableBody, btnCloseSiswaPanel } = ui.pengaturan;
+            const { daftarKelas, daftarSiswa, panelDaftarSiswa, namaKelasTerpilih, jadwalTableBody } = ui.pengaturan;
             
             // Render Daftar Kelas
             daftarKelas.innerHTML = '';
@@ -650,35 +671,50 @@
         }
         
         // --- AUTHENTICATION ---
+        async function signInWithGoogle() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google Sign-In failed:", error);
+                showToast("Gagal login dengan Google.", false);
+            }
+        }
+
+        async function signOutUser() {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Sign out failed:", error);
+                showToast("Gagal logout.", false);
+            }
+        }
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
-                document.getElementById('auth-status').textContent = `Terhubung (ID: ${userId.substring(0, 8)}...)`;
+                ui.userDisplayName.textContent = user.displayName || user.email;
+                ui.logoutBtn.classList.remove('hidden');
+                
+                ui.loginScreen.classList.add('hidden');
+                ui.mainAppWrapper.classList.remove('hidden');
+
                 if (penilaianUnsubscribe) penilaianUnsubscribe();
                 if (masterDataUnsubscribe) masterDataUnsubscribe();
                 listenPenilaian();
                 listenMasterData();
             } else {
                 userId = null;
-                document.getElementById('auth-status').textContent = 'Tidak Terhubung';
                 if (penilaianUnsubscribe) penilaianUnsubscribe();
                 if (masterDataUnsubscribe) masterDataUnsubscribe();
+                
+                ui.userDisplayName.textContent = 'Tidak Terhubung';
+                ui.logoutBtn.classList.add('hidden');
+
+                ui.mainAppWrapper.classList.add('hidden');
+                ui.loginScreen.classList.remove('hidden');
             }
         });
-
-        async function authenticate() {
-             try {
-                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                if (token) {
-                    await signInWithCustomToken(auth, token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                 console.error("Authentication failed:", error);
-                 document.getElementById('auth-status').textContent = 'Error: Gagal autentikasi.';
-            }
-        }
         
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -688,6 +724,11 @@
             document.getElementById('content-pengaturan').innerHTML = document.querySelector('#template-pengaturan').innerHTML;
 
             Object.assign(ui, {
+                loginScreen: document.getElementById('login-screen'),
+                loginBtn: document.getElementById('login-btn'),
+                mainAppWrapper: document.getElementById('main-app-wrapper'),
+                userDisplayName: document.getElementById('user-display-name'),
+                logoutBtn: document.getElementById('logout-btn'),
                 nav: {
                     jadwal: document.getElementById('nav-jadwal'),
                     penilaian: document.getElementById('nav-penilaian'),
@@ -700,9 +741,7 @@
                     absensi: document.getElementById('content-absensi'),
                     pengaturan: document.getElementById('content-pengaturan'),
                 },
-                jadwal: {
-                    tableBody: document.getElementById('jadwal-table-body'),
-                },
+                jadwal: { tableBody: document.getElementById('jadwal-table-body'), },
                 penilaian: {
                     form: document.getElementById('form-penilaian'),
                     selectKelas: document.getElementById('penilaian-kelas'),
@@ -745,7 +784,8 @@
                 }
             });
 
-            if (auth) authenticate();
+            ui.loginBtn.addEventListener('click', signInWithGoogle);
+            ui.logoutBtn.addEventListener('click', signOutUser);
             
             ui.penilaian.selectKelas.addEventListener('change', e => populateSiswaOptions(e.target.value));
             ui.penilaian.form.addEventListener('submit', handlePenilaianSubmit);
@@ -755,7 +795,6 @@
             
             addPengaturanEventListeners();
             
-            // Defer icon creation
             setTimeout(() => {
                 if (window.lucide) {
                     lucide.createIcons();
