@@ -3,30 +3,963 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi Salat - Scan QR</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>Dashboard Jurnal Guru</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide-static@latest/dist/lucide.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .nav-btn.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <h1>📷 Absensi Salat Siswa</h1>
-    </header>
+<body class="antialiased text-slate-800">
+    <div id="app-container" class="flex h-screen bg-slate-100">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 flex-shrink-0 bg-slate-800 text-white flex flex-col">
+            <div class="h-16 flex items-center justify-center px-4 border-b border-slate-700">
+                <div class="flex items-center space-x-3">
+                    <svg class="h-8 w-8 text-indigo-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+                    <h1 class="text-xl font-bold">Jurnal Guru</h1>
+                </div>
+            </div>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <button id="nav-jadwal" class="nav-btn active w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('jadwal')">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                    <span>Jadwal Mengajar</span>
+                </button>
+                <button id="nav-penilaian" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('penilaian')">
+                    <i data-lucide="notebook-pen" class="w-5 h-5"></i>
+                    <span>Penilaian Siswa</span>
+                </button>
+                <button id="nav-absensi" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('absensi')">
+                   <i data-lucide="user-check" class="w-5 h-5"></i>
+                    <span>Absensi Siswa</span>
+                </button>
+                <div class="pt-4 mt-4 border-t border-slate-700">
+                    <button id="nav-pengaturan" class="nav-btn w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors" onclick="changeView('pengaturan')">
+                       <i data-lucide="settings" class="w-5 h-5"></i>
+                        <span>Pengaturan</span>
+                    </button>
+                </div>
+            </nav>
+        </aside>
 
-    <main>
-        <label for="salat">Pilih Salat:</label>
-        <select id="salat">
-            <option value="Subuh">Subuh</option>
-            <option value="Dzuhur">Dzuhur</option>
-            <option value="Ashar">Ashar</option>
-            <option value="Maghrib">Maghrib</option>
-            <option value="Isya">Isya</option>
-        </select>
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+                 <h2 id="header-title" class="text-lg font-semibold text-slate-700">Jadwal Mengajar</h2>
+                 <div id="auth-status" class="text-xs text-slate-500">Menghubungkan...</div>
+            </header>
+            
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Content Panes -->
+                <div id="content-jadwal" class="view-content fade-in"></div>
+                <div id="content-penilaian" class="view-content fade-in hidden"></div>
+                <div id="content-absensi" class="view-content fade-in hidden"></div>
+                <div id="content-pengaturan" class="view-content fade-in hidden"></div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modal for confirmation -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm">
+            <h3 id="confirm-title" class="text-lg font-bold text-slate-800">Konfirmasi</h3>
+            <p id="confirm-message" class="mt-2 text-sm text-slate-600">Apakah Anda yakin?</p>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="confirm-cancel" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-md hover:bg-slate-300">Batal</button>
+                <button id="confirm-ok" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
 
-        <div id="reader" style="width: 300px;"></div>
+    <!-- Simple notification toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-2 transition-all duration-300">Pesan notifikasi</div>
 
-        <div id="result"></div>
-    </main>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, setDoc, getDoc, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    <script src="app.js"></script>
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyAgXG2HeD2cK0qYOmOkO-H7wlVVQyDpxZY",
+            authDomain: "jurnal-guru-b863e.firebaseapp.com",
+            projectId: "jurnal-guru-b863e",
+            storageBucket: "jurnal-guru-b863e.appspot.com",
+            messagingSenderId: "241537173977",
+            appId: "1:241537173977:web:f5729a04fe015fe2b531c8"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'jurnal-guru-app';
+
+        // --- FIREBASE INITIALIZATION ---
+        let app, auth, db, userId;
+        let penilaianUnsubscribe, masterDataUnsubscribe;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (error)
+        {
+            console.error("Firebase initialization failed:", error);
+            document.getElementById('auth-status').textContent = 'Error: Gagal inisialisasi Firebase.';
+        }
+
+        // --- APP STATE ---
+        const appState = {
+            jadwal: [],
+            kelas: {},
+            selectedKelasPengaturan: null,
+        };
+        const ui = {};
+
+        // --- UI FUNCTIONS ---
+        function showToast(message, isSuccess = true) {
+            ui.toast.textContent = message;
+            ui.toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transition-all duration-300 ${isSuccess ? 'bg-green-600' : 'bg-red-600'}`;
+            ui.toast.classList.remove('opacity-0', 'translate-y-2');
+            setTimeout(() => {
+                ui.toast.classList.add('opacity-0', 'translate-y-2');
+            }, 3000);
+        }
+
+        function showConfirm({ title = 'Konfirmasi', message, okText = 'Ya, Lanjutkan', onConfirm }) {
+            ui.confirmModal.title.textContent = title;
+            ui.confirmModal.message.textContent = message;
+            ui.confirmModal.btnOk.textContent = okText;
+
+            ui.confirmModal.el.classList.remove('hidden');
+
+            const handleOk = () => {
+                onConfirm();
+                cleanup();
+            };
+
+            const cleanup = () => {
+                ui.confirmModal.el.classList.add('hidden');
+                ui.confirmModal.btnOk.removeEventListener('click', handleOk);
+                ui.confirmModal.btnCancel.removeEventListener('click', cleanup);
+            };
+
+            ui.confirmModal.btnOk.addEventListener('click', handleOk);
+            ui.confirmModal.btnCancel.addEventListener('click', cleanup);
+        }
+
+        window.changeView = function(viewName) {
+            const titles = {
+                jadwal: 'Jadwal Mengajar',
+                penilaian: 'Penilaian Siswa',
+                absensi: 'Absensi Siswa',
+                pengaturan: 'Pengaturan Data'
+            };
+            document.getElementById('header-title').textContent = titles[viewName];
+            Object.values(ui.nav).forEach(nav => nav.classList.remove('active'));
+            Object.values(ui.contents).forEach(content => content.classList.add('hidden'));
+
+            ui.nav[viewName].classList.add('active');
+            ui.contents[viewName].classList.remove('hidden');
+        }
+
+        // --- MASTER DATA (PENGATURAN) ---
+        async function updateMasterData() {
+            if (!userId) return;
+            const masterDataRef = doc(db, 'artifacts', appId, 'users', userId, 'pengaturan', 'dataMaster');
+            try {
+                const dataToSave = {
+                    jadwal: appState.jadwal,
+                    kelas: appState.kelas,
+                };
+                await setDoc(masterDataRef, dataToSave);
+                console.log("Master data updated.");
+            } catch (error) {
+                console.error("Error updating master data:", error);
+                showToast("Gagal memperbarui data.", false);
+            }
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderAll() {
+            if (Object.keys(ui).length === 0) {
+                console.log("UI elements not ready for rendering.");
+                return;
+            }
+            renderJadwal();
+            populateKelasOptions();
+            populateSiswaOptions(ui.penilaian?.selectKelas?.value);
+            renderAbsensiSiswa(ui.absensi?.selectKelas?.value);
+            renderPengaturan();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+        
+        function renderJadwal() {
+            if (!ui.jadwal?.tableBody) return;
+            ui.jadwal.tableBody.innerHTML = '';
+            const sortedJadwal = [...appState.jadwal].sort((a,b) => a.hari.localeCompare(b.hari) || a.waktu.localeCompare(b.waktu));
+            if (sortedJadwal.length === 0) {
+                 ui.jadwal.tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Jadwal belum diatur. Silakan ke menu Pengaturan.</td></tr>`;
+                 return;
+            }
+            sortedJadwal.forEach(item => {
+                const row = `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${item.hari}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${item.waktu}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${item.kelas}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${item.mapel}</td>
+                    </tr>
+                `;
+                ui.jadwal.tableBody.innerHTML += row;
+            });
+        }
+        
+        function populateKelasOptions() {
+            const kelasList = Object.keys(appState.kelas).sort();
+            const optionsHtml = kelasList.length > 0
+                ? kelasList.map(k => `<option value="${k}">${k}</option>`).join('')
+                : `<option value="">-- Belum ada kelas --</option>`;
+
+            if (ui.penilaian?.selectKelas) ui.penilaian.selectKelas.innerHTML = optionsHtml;
+            if (ui.absensi?.selectKelas) ui.absensi.selectKelas.innerHTML = optionsHtml;
+            if (ui.pengaturan?.selectJadwalKelas) ui.pengaturan.selectJadwalKelas.innerHTML = optionsHtml;
+        }
+
+        function populateSiswaOptions(kelas) {
+            if (!ui.penilaian?.selectSiswa || !kelas) return;
+            const siswaList = appState.kelas[kelas]?.sort() || [];
+             ui.penilaian.selectSiswa.innerHTML = siswaList.length > 0
+                ? siswaList.map(s => `<option value="${s}">${s}</option>`).join('')
+                : `<option value="">-- Belum ada siswa --</option>`;
+        }
+
+        function renderPenilaian(penilaianData) {
+            if (!ui.penilaian?.tableBody) return;
+            penilaianData.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)); 
+            ui.penilaian.tableBody.innerHTML = '';
+             if (penilaianData.length === 0) {
+                 ui.penilaian.tableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Belum ada data nilai.</td></tr>`;
+                 return;
+            }
+            penilaianData.forEach(item => {
+                const row = `
+                     <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${item.siswa}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${item.kelas}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${item.mapel}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold ${item.nilai >= 75 ? 'text-green-600' : 'text-red-600'}">${item.nilai}</td>
+                    </tr>
+                `;
+                ui.penilaian.tableBody.innerHTML += row;
+            });
+        }
+        
+        function renderAbsensiSiswa(kelas) {
+            if (!ui.absensi?.tableBody) return;
+            const siswaList = appState.kelas[kelas]?.sort() || [];
+            ui.absensi.tableBody.innerHTML = '';
+             if (siswaList.length === 0) {
+                ui.absensi.tableBody.innerHTML = `<tr><td colspan="2" class="text-center py-4 text-slate-500">Pilih kelas untuk menampilkan siswa.</td></tr>`;
+                return;
+            }
+            siswaList.forEach((siswa, index) => {
+                const siswaId = siswa.replace(/\s+/g, '-');
+                const row = `
+                     <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${siswa}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                           <fieldset>
+                             <div class="flex items-center space-x-6">
+                               <div class="flex items-center">
+                                 <input id="hadir-${index}" name="status-${siswaId}" type="radio" value="Hadir" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300" checked>
+                                 <label for="hadir-${index}" class="ml-2 block text-sm font-medium text-slate-700">Hadir</label>
+                               </div>
+                               <div class="flex items-center">
+                                 <input id="sakit-${index}" name="status-${siswaId}" type="radio" value="Sakit" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
+                                 <label for="sakit-${index}" class="ml-2 block text-sm font-medium text-slate-700">Sakit</label>
+                               </div>
+                               <div class="flex items-center">
+                                 <input id="izin-${index}" name="status-${siswaId}" type="radio" value="Izin" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
+                                 <label for="izin-${index}" class="ml-2 block text-sm font-medium text-slate-700">Izin</label>
+                               </div>
+                                <div class="flex items-center">
+                                 <input id="alpa-${index}" name="status-${siswaId}" type="radio" value="Alpa" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-slate-300">
+                                 <label for="alpa-${index}" class="ml-2 block text-sm font-medium text-slate-700">Alpa</label>
+                               </div>
+                             </div>
+                           </fieldset>
+                        </td>
+                    </tr>
+                `;
+                ui.absensi.tableBody.innerHTML += row;
+            });
+        }
+        
+        function renderPengaturan() {
+            if (!ui.pengaturan) return;
+            const { daftarKelas, daftarSiswa, panelDaftarSiswa, namaKelasTerpilih, jadwalTableBody, btnCloseSiswaPanel } = ui.pengaturan;
+            
+            // Render Daftar Kelas
+            daftarKelas.innerHTML = '';
+            const kelasNames = Object.keys(appState.kelas).sort();
+            if(kelasNames.length === 0) {
+                daftarKelas.innerHTML = `<p class="text-sm text-slate-500">Belum ada kelas.</p>`;
+            } else {
+                 kelasNames.forEach(namaKelas => {
+                    const isSelected = namaKelas === appState.selectedKelasPengaturan;
+                    const el = document.createElement('div');
+                    el.className = `flex justify-between items-center p-2 rounded-md cursor-pointer ${isSelected ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-slate-100'}`;
+                    el.innerHTML = `
+                        <span class="font-medium flex-grow">${namaKelas}</span>
+                        <button data-kelas="${namaKelas}" class="delete-kelas-btn text-slate-400 hover:text-red-600 p-1 text-xl leading-none">&times;</button>
+                    `;
+                    el.querySelector('span').addEventListener('click', () => {
+                        appState.selectedKelasPengaturan = namaKelas;
+                        renderPengaturan();
+                    });
+                    daftarKelas.appendChild(el);
+                });
+            }
+
+            // Render Daftar Siswa for selected class
+            if (appState.selectedKelasPengaturan) {
+                panelDaftarSiswa.classList.remove('hidden');
+                namaKelasTerpilih.textContent = appState.selectedKelasPengaturan;
+                const siswaList = appState.kelas[appState.selectedKelasPengaturan]?.sort() || [];
+                daftarSiswa.innerHTML = '';
+                if(siswaList.length === 0) {
+                    daftarSiswa.innerHTML = `<p class="text-sm text-slate-500">Belum ada siswa di kelas ini.</p>`;
+                } else {
+                    siswaList.forEach(namaSiswa => {
+                        const el = document.createElement('div');
+                        el.className = 'flex justify-between items-center p-2 rounded-md hover:bg-slate-50';
+                        el.innerHTML = `
+                            <span>${namaSiswa}</span>
+                            <button data-siswa="${namaSiswa}" class="delete-siswa-btn text-slate-400 hover:text-red-600 p-1 text-xl leading-none">&times;</button>
+                        `;
+                        daftarSiswa.appendChild(el);
+                    });
+                }
+            } else {
+                panelDaftarSiswa.classList.add('hidden');
+            }
+            
+            // Render Jadwal table
+            jadwalTableBody.innerHTML = '';
+             if (appState.jadwal.length === 0) {
+                 jadwalTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Belum ada jadwal.</td></tr>`;
+            } else {
+                 appState.jadwal.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-4 py-3 text-sm">${item.hari}</td>
+                        <td class="px-4 py-3 text-sm">${item.waktu}</td>
+                        <td class="px-4 py-3 text-sm">${item.kelas}</td>
+                        <td class="px-4 py-3 text-sm">${item.mapel}</td>
+                        <td class="px-4 py-3 text-right">
+                            <button data-index="${index}" class="delete-jadwal-btn text-slate-400 hover:text-red-600">Hapus</button>
+                        </td>
+                    `;
+                    jadwalTableBody.appendChild(row);
+                });
+            }
+        }
+        
+        // --- EVENT HANDLERS ---
+        async function handlePenilaianSubmit(e) {
+            e.preventDefault();
+            if (!userId) {
+                showToast('Anda belum terautentikasi.', false);
+                return;
+            }
+            const newNilai = {
+                kelas: ui.penilaian.selectKelas.value,
+                siswa: ui.penilaian.selectSiswa.value,
+                mapel: ui.penilaian.inputMapel.value.trim(),
+                nilai: parseInt(ui.penilaian.inputNilai.value),
+                createdAt: new Date()
+            };
+
+            if (!newNilai.kelas || !newNilai.siswa || !newNilai.mapel || isNaN(newNilai.nilai) || newNilai.nilai < 0 || newNilai.nilai > 100) {
+                showToast('Harap isi semua kolom dengan benar.', false);
+                return;
+            }
+            
+            try {
+                const penilaianColRef = collection(db, 'artifacts', appId, 'users', userId, 'penilaian');
+                await addDoc(penilaianColRef, newNilai);
+                ui.penilaian.form.reset();
+                populateSiswaOptions(ui.penilaian.selectKelas.value);
+                showToast('Nilai berhasil disimpan!');
+            } catch (error) {
+                console.error("Error adding document: ", error);
+                showToast('Gagal menyimpan nilai.', false);
+            }
+        }
+
+        async function handleSimpanAbsensi() {
+            if (!userId) {
+                showToast('Anda belum terautentikasi.', false);
+                return;
+            }
+            const kelas = ui.absensi.selectKelas.value;
+            const tanggal = ui.absensi.inputTanggal.value;
+            if (!tanggal || !kelas) {
+                showToast('Harap pilih tanggal dan kelas terlebih dahulu.', false);
+                return;
+            }
+
+            const siswaList = appState.kelas[kelas] || [];
+            if(siswaList.length === 0) {
+                 showToast('Tidak ada siswa di kelas ini untuk diabsen.', false);
+                 return;
+            }
+
+            const absensiData = [];
+            siswaList.forEach((siswa) => {
+                const siswaId = siswa.replace(/\s+/g, '-');
+                const selectedRadio = document.querySelector(`input[name="status-${siswaId}"]:checked`);
+                const status = selectedRadio ? selectedRadio.value : 'Hadir'; // Default to Hadir
+                absensiData.push({ siswa, status });
+            });
+
+            const docId = `${tanggal}_${kelas.replace(/\s+/g, '-')}`;
+            const absensiDocRef = doc(db, 'artifacts', appId, 'users', userId, 'absensi', docId);
+            
+            try {
+                await setDoc(absensiDocRef, {
+                    tanggal,
+                    kelas,
+                    kehadiran: absensiData,
+                    updatedAt: new Date()
+                }, { merge: true }); // Merge true to allow overwriting today's attendance
+                showToast(`Absensi kelas ${kelas} untuk tanggal ${tanggal} berhasil disimpan!`);
+            } catch (error) {
+                console.error("Error saving attendance: ", error);
+                showToast("Gagal menyimpan absensi.", false);
+            }
+        }
+
+        function addPengaturanEventListeners() {
+            const { formTambahKelas, inputNamaKelas, daftarKelas, formTambahSiswa, inputNamaSiswa, panelDaftarSiswa, daftarSiswa, formTambahJadwal, inputJadwalHari, inputJadwalWaktuMulai, inputJadwalWaktuSelesai, selectJadwalKelas, inputJadwalMapel, jadwalTableBody, btnCloseSiswaPanel } = ui.pengaturan;
+
+            formTambahKelas.addEventListener('submit', e => {
+                e.preventDefault();
+                const namaKelasBaru = inputNamaKelas.value.trim();
+                if (namaKelasBaru && !appState.kelas[namaKelasBaru]) {
+                    appState.kelas[namaKelasBaru] = [];
+                    updateMasterData();
+                    showToast(`Kelas "${namaKelasBaru}" berhasil ditambahkan.`);
+                    inputNamaKelas.value = '';
+                } else {
+                    showToast('Nama kelas tidak valid atau sudah ada.', false);
+                }
+            });
+
+            daftarKelas.addEventListener('click', e => {
+                const deleteButton = e.target.closest('.delete-kelas-btn');
+                if (deleteButton) {
+                    const namaKelas = deleteButton.dataset.kelas;
+                    showConfirm({
+                        message: `Anda yakin ingin menghapus kelas "${namaKelas}" beserta semua siswanya?`,
+                        onConfirm: () => {
+                            delete appState.kelas[namaKelas];
+                            if (appState.selectedKelasPengaturan === namaKelas) {
+                                appState.selectedKelasPengaturan = null;
+                            }
+                            updateMasterData();
+                            showToast(`Kelas "${namaKelas}" telah dihapus.`);
+                        }
+                    });
+                }
+            });
+
+            btnCloseSiswaPanel.addEventListener('click', () => {
+                appState.selectedKelasPengaturan = null;
+                renderPengaturan();
+            });
+
+            formTambahSiswa.addEventListener('submit', e => {
+                e.preventDefault();
+                const namaSiswaText = inputNamaSiswa.value.trim();
+                const namaSiswaBaruList = namaSiswaText.split('\n').map(name => name.trim()).filter(name => name !== '');
+                
+                if (namaSiswaBaruList.length > 0 && appState.selectedKelasPengaturan) {
+                    const siswaList = appState.kelas[appState.selectedKelasPengaturan];
+                    let addedCount = 0;
+                    namaSiswaBaruList.forEach(namaSiswaBaru => {
+                        if (!siswaList.includes(namaSiswaBaru)) {
+                            siswaList.push(namaSiswaBaru);
+                            addedCount++;
+                        }
+                    });
+
+                    if (addedCount > 0) {
+                        updateMasterData();
+                        showToast(`${addedCount} siswa berhasil ditambahkan.`);
+                        inputNamaSiswa.value = '';
+                    } else {
+                        showToast('Tidak ada siswa baru yang ditambahkan (mungkin sudah ada).', false);
+                    }
+                } else {
+                    showToast('Harap masukkan nama siswa dan pilih kelas terlebih dahulu.', false);
+                }
+            });
+            
+             daftarSiswa.addEventListener('click', e => {
+                const deleteButton = e.target.closest('.delete-siswa-btn');
+                if (deleteButton) {
+                    const namaSiswa = deleteButton.dataset.siswa;
+                    showConfirm({
+                        message: `Anda yakin ingin menghapus siswa "${namaSiswa}" dari kelas ini?`,
+                        onConfirm: () => {
+                            const siswaList = appState.kelas[appState.selectedKelasPengaturan];
+                            const index = siswaList.indexOf(namaSiswa);
+                            if (index > -1) {
+                                siswaList.splice(index, 1);
+                                updateMasterData();
+                                showToast(`Siswa "${namaSiswa}" telah dihapus.`);
+                            }
+                        }
+                    });
+                }
+            });
+            
+            formTambahJadwal.addEventListener('submit', e => {
+                e.preventDefault();
+                const waktuMulai = inputJadwalWaktuMulai.value;
+                const waktuSelesai = inputJadwalWaktuSelesai.value;
+
+                if (waktuMulai && waktuSelesai && parseInt(waktuSelesai) < parseInt(waktuMulai)) {
+                    showToast("Jam selesai tidak boleh kurang dari jam mulai.", false);
+                    return;
+                }
+                
+                const newJadwal = {
+                    hari: inputJadwalHari.value,
+                    waktu: `Jam ke-${waktuMulai} sampai ${waktuSelesai}`,
+                    kelas: selectJadwalKelas.value,
+                    mapel: inputJadwalMapel.value.trim()
+                };
+
+                if(newJadwal.hari && waktuMulai && waktuSelesai && newJadwal.kelas && newJadwal.mapel) {
+                    appState.jadwal.push(newJadwal);
+                    updateMasterData();
+                    showToast("Jadwal baru berhasil ditambahkan.");
+                    formTambahJadwal.reset();
+                } else {
+                    showToast("Harap lengkapi semua kolom jadwal.", false);
+                }
+            });
+
+            jadwalTableBody.addEventListener('click', e => {
+                const deleteButton = e.target.closest('.delete-jadwal-btn');
+                if(deleteButton) {
+                    const index = parseInt(deleteButton.dataset.index);
+                    showConfirm({
+                        message: "Anda yakin ingin menghapus jadwal ini?",
+                        onConfirm: () => {
+                            appState.jadwal.splice(index, 1);
+                            updateMasterData();
+                            showToast("Jadwal telah dihapus.");
+                        }
+                    });
+                }
+            });
+        }
+
+        // --- FIREBASE LISTENERS ---
+        function listenMasterData() {
+            if (!userId) return;
+            const masterDataRef = doc(db, 'artifacts', appId, 'users', userId, 'pengaturan', 'dataMaster');
+            masterDataUnsubscribe = onSnapshot(masterDataRef, (doc) => {
+                if (doc.exists()) {
+                    const data = doc.data();
+                    appState.jadwal = data.jadwal || [];
+                    appState.kelas = data.kelas || {};
+                } else {
+                    appState.jadwal = [];
+                    appState.kelas = {};
+                }
+                renderAll();
+            }, (error) => {
+                console.error("Error listening to master data:", error);
+            });
+        }
+
+        function listenPenilaian() {
+            if (!userId) return;
+            const penilaianColRef = collection(db, 'artifacts', appId, 'users', userId, 'penilaian');
+            const q = query(penilaianColRef);
+            
+            penilaianUnsubscribe = onSnapshot(q, (snapshot) => {
+                const penilaianData = [];
+                snapshot.forEach(doc => {
+                    penilaianData.push({ id: doc.id, ...doc.data() });
+                });
+                renderPenilaian(penilaianData);
+            }, (error) => {
+                console.error("Error listening to penilaian:", error);
+                showToast("Gagal memuat data penilaian.", false);
+            });
+        }
+        
+        // --- AUTHENTICATION ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userId = user.uid;
+                document.getElementById('auth-status').textContent = `Terhubung (ID: ${userId.substring(0, 8)}...)`;
+                if (penilaianUnsubscribe) penilaianUnsubscribe();
+                if (masterDataUnsubscribe) masterDataUnsubscribe();
+                listenPenilaian();
+                listenMasterData();
+            } else {
+                userId = null;
+                document.getElementById('auth-status').textContent = 'Tidak Terhubung';
+                if (penilaianUnsubscribe) penilaianUnsubscribe();
+                if (masterDataUnsubscribe) masterDataUnsubscribe();
+            }
+        });
+
+        async function authenticate() {
+             try {
+                const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                if (token) {
+                    await signInWithCustomToken(auth, token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                 console.error("Authentication failed:", error);
+                 document.getElementById('auth-status').textContent = 'Error: Gagal autentikasi.';
+            }
+        }
+        
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('content-jadwal').innerHTML = document.querySelector('#template-jadwal').innerHTML;
+            document.getElementById('content-penilaian').innerHTML = document.querySelector('#template-penilaian').innerHTML;
+            document.getElementById('content-absensi').innerHTML = document.querySelector('#template-absensi').innerHTML;
+            document.getElementById('content-pengaturan').innerHTML = document.querySelector('#template-pengaturan').innerHTML;
+
+            Object.assign(ui, {
+                nav: {
+                    jadwal: document.getElementById('nav-jadwal'),
+                    penilaian: document.getElementById('nav-penilaian'),
+                    absensi: document.getElementById('nav-absensi'),
+                    pengaturan: document.getElementById('nav-pengaturan'),
+                },
+                contents: {
+                    jadwal: document.getElementById('content-jadwal'),
+                    penilaian: document.getElementById('content-penilaian'),
+                    absensi: document.getElementById('content-absensi'),
+                    pengaturan: document.getElementById('content-pengaturan'),
+                },
+                jadwal: {
+                    tableBody: document.getElementById('jadwal-table-body'),
+                },
+                penilaian: {
+                    form: document.getElementById('form-penilaian'),
+                    selectKelas: document.getElementById('penilaian-kelas'),
+                    selectSiswa: document.getElementById('penilaian-siswa'),
+                    inputMapel: document.getElementById('penilaian-mapel'),
+                    inputNilai: document.getElementById('penilaian-nilai'),
+                    tableBody: document.getElementById('penilaian-table-body'),
+                },
+                absensi: {
+                    selectKelas: document.getElementById('absensi-kelas'),
+                    inputTanggal: document.getElementById('absensi-tanggal'),
+                    tableBody: document.getElementById('absensi-table-body'),
+                    btnSimpan: document.getElementById('simpan-absensi'),
+                },
+                pengaturan: {
+                    formTambahKelas: document.getElementById('form-tambah-kelas'),
+                    inputNamaKelas: document.getElementById('input-nama-kelas'),
+                    daftarKelas: document.getElementById('pengaturan-daftar-kelas'),
+                    panelDaftarSiswa: document.getElementById('panel-daftar-siswa'),
+                    namaKelasTerpilih: document.getElementById('nama-kelas-terpilih'),
+                    daftarSiswa: document.getElementById('pengaturan-daftar-siswa'),
+                    formTambahSiswa: document.getElementById('form-tambah-siswa'),
+                    inputNamaSiswa: document.getElementById('input-nama-siswa'),
+                    btnCloseSiswaPanel: document.getElementById('close-siswa-panel-btn'),
+                    formTambahJadwal: document.getElementById('form-tambah-jadwal'),
+                    inputJadwalHari: document.getElementById('input-jadwal-hari'),
+                    inputJadwalWaktuMulai: document.getElementById('input-jadwal-waktu-mulai'),
+                    inputJadwalWaktuSelesai: document.getElementById('input-jadwal-waktu-selesai'),
+                    selectJadwalKelas: document.getElementById('input-jadwal-kelas'),
+                    inputJadwalMapel: document.getElementById('input-jadwal-mapel'),
+                    jadwalTableBody: document.getElementById('pengaturan-jadwal-table-body'),
+                },
+                toast: document.getElementById('toast'),
+                confirmModal: {
+                    el: document.getElementById('confirm-modal'),
+                    title: document.getElementById('confirm-title'),
+                    message: document.getElementById('confirm-message'),
+                    btnCancel: document.getElementById('confirm-cancel'),
+                    btnOk: document.getElementById('confirm-ok'),
+                }
+            });
+
+            if (auth) authenticate();
+            
+            ui.penilaian.selectKelas.addEventListener('change', e => populateSiswaOptions(e.target.value));
+            ui.penilaian.form.addEventListener('submit', handlePenilaianSubmit);
+            ui.absensi.selectKelas.addEventListener('change', e => renderAbsensiSiswa(e.target.value));
+            ui.absensi.inputTanggal.valueAsDate = new Date();
+            ui.absensi.btnSimpan.addEventListener('click', handleSimpanAbsensi);
+            
+            addPengaturanEventListeners();
+            
+            // Defer icon creation
+            setTimeout(() => {
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }, 100);
+        });
+    </script>
+    
+    <!-- TEMPLATES -->
+    <template id="template-jadwal">
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold text-slate-900 mb-4">Jadwal Mengajar</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hari</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Waktu</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kelas</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Mata Pelajaran</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jadwal-table-body" class="bg-white divide-y divide-slate-200">
+                        <tr><td colspan="4" class="text-center py-4 text-slate-500"><div class="loader mx-auto"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+    <template id="template-penilaian">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1">
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-semibold text-slate-900 mb-4">Input Nilai</h3>
+                    <form id="form-penilaian" class="space-y-4">
+                        <div>
+                            <label for="penilaian-kelas" class="block text-sm font-medium text-slate-700">Kelas</label>
+                            <select id="penilaian-kelas" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                        </div>
+                        <div>
+                            <label for="penilaian-siswa" class="block text-sm font-medium text-slate-700">Siswa</label>
+                            <select id="penilaian-siswa" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                        </div>
+                        <div>
+                            <label for="penilaian-mapel" class="block text-sm font-medium text-slate-700">Mata Pelajaran</label>
+                            <input type="text" id="penilaian-mapel" placeholder="e.g. Matematika" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="penilaian-nilai" class="block text-sm font-medium text-slate-700">Nilai</label>
+                            <input type="number" id="penilaian-nilai" min="0" max="100" placeholder="0-100" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Simpan Nilai
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="lg:col-span-2">
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-semibold text-slate-900 mb-4">Data Penilaian Terbaru</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Siswa</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kelas</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Mata Pelajaran</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nilai</th>
+                                </tr>
+                            </thead>
+                            <tbody id="penilaian-table-body" class="bg-white divide-y divide-slate-200">
+                                <tr><td colspan="4" class="text-center py-4 text-slate-500"><div class="loader mx-auto"></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="template-absensi">
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-xl font-semibold text-slate-900 mb-4">Ambil Absensi</h2>
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <div>
+                    <label for="absensi-kelas" class="block text-sm font-medium text-slate-700">Pilih Kelas</label>
+                    <select id="absensi-kelas" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-slate-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"></select>
+                </div>
+                <div>
+                    <label for="absensi-tanggal" class="block text-sm font-medium text-slate-700">Tanggal</label>
+                    <input type="date" id="absensi-tanggal" class="mt-1 block w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nama Siswa</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status Kehadiran</th>
+                        </tr>
+                    </thead>
+                    <tbody id="absensi-table-body" class="bg-white divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button id="simpan-absensi" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Simpan Absensi
+                </button>
+            </div>
+        </div>
+    </template>
+    <template id="template-pengaturan">
+        <div class="space-y-6">
+            <!-- Kelola Kelas & Siswa -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Kelola Kelas & Siswa</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Kolom Kiri: Daftar Kelas & Tambah Kelas -->
+                    <div>
+                        <h4 class="font-semibold text-slate-700 mb-2">Daftar Kelas</h4>
+                        <div id="pengaturan-daftar-kelas" class="space-y-2 mb-4 max-h-60 overflow-y-auto pr-2">
+                            <!-- Kelas akan dirender di sini -->
+                        </div>
+                        <form id="form-tambah-kelas" class="flex gap-2">
+                            <input type="text" id="input-nama-kelas" placeholder="Nama Kelas Baru (e.g. X IPA 3)" class="flex-grow border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <button type="submit" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700">Tambah</button>
+                        </form>
+                    </div>
+                    <!-- Kolom Kanan: Daftar Siswa & Tambah Siswa -->
+                    <div id="panel-daftar-siswa" class="hidden">
+                        <div class="flex justify-between items-center mb-2">
+                             <h4 class="font-semibold text-slate-700">Siswa di Kelas <span id="nama-kelas-terpilih" class="text-indigo-600"></span></h4>
+                             <button id="close-siswa-panel-btn" class="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-200">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                             </button>
+                         </div>
+                         <div id="pengaturan-daftar-siswa" class="space-y-2 mb-4 max-h-60 overflow-y-auto pr-2">
+                            <!-- Siswa akan dirender di sini -->
+                         </div>
+                         <form id="form-tambah-siswa">
+                            <label for="input-nama-siswa" class="block text-sm font-medium text-slate-700 mb-1">Tambah Siswa</label>
+                            <textarea id="input-nama-siswa" placeholder="Ahmad Sanusi&#10;Budi Santoso&#10;Cici Paramida" class="w-full border border-slate-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" rows="4"></textarea>
+                            <p class="text-xs text-slate-500 mt-1">Masukkan satu nama per baris untuk menambah beberapa siswa sekaligus.</p>
+                            <button type="submit" class="mt-2 w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700">Tambah Siswa</button>
+                         </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Kelola Jadwal -->
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h3 class="text-xl font-semibold text-slate-900 mb-4">Kelola Jadwal Mengajar</h3>
+                <div class="overflow-x-auto mb-4">
+                    <table class="min-w-full divide-y divide-slate-200">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Hari</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Waktu</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Kelas</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Mapel</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pengaturan-jadwal-table-body" class="bg-white divide-y divide-slate-200"></tbody>
+                    </table>
+                </div>
+                <form id="form-tambah-jadwal" class="grid grid-cols-1 sm:grid-cols-6 gap-3 items-end p-4 bg-slate-50 rounded-lg">
+                    <select id="input-jadwal-hari" class="sm:col-span-1 border-slate-300 rounded-md py-2 px-3">
+                        <option value="">Pilih Hari</option>
+                        <option value="Senin">Senin</option>
+                        <option value="Selasa">Selasa</option>
+                        <option value="Rabu">Rabu</option>
+                        <option value="Kamis">Kamis</option>
+                        <option value="Jumat">Jumat</option>
+                        <option value="Sabtu">Sabtu</option>
+                    </select>
+                    <select id="input-jadwal-waktu-mulai" class="sm:col-span-1 border-slate-300 rounded-md py-2 px-3">
+                        <option value="">Dari Jam</option>
+                        <option value="1">Jam ke-1</option>
+                        <option value="2">Jam ke-2</option>
+                        <option value="3">Jam ke-3</option>
+                        <option value="4">Jam ke-4</option>
+                        <option value="5">Jam ke-5</option>
+                        <option value="6">Jam ke-6</option>
+                        <option value="7">Jam ke-7</option>
+                        <option value="8">Jam ke-8</option>
+                    </select>
+                    <select id="input-jadwal-waktu-selesai" class="sm:col-span-1 border-slate-300 rounded-md py-2 px-3">
+                        <option value="">Sampai Jam</option>
+                        <option value="1">Jam ke-1</option>
+                        <option value="2">Jam ke-2</option>
+                        <option value="3">Jam ke-3</option>
+                        <option value="4">Jam ke-4</option>
+                        <option value="5">Jam ke-5</option>
+                        <option value="6">Jam ke-6</option>
+                        <option value="7">Jam ke-7</option>
+                        <option value="8">Jam ke-8</option>
+                    </select>
+                    <select id="input-jadwal-kelas" class="sm:col-span-1 border-slate-300 rounded-md py-2 px-3"></select>
+                    <input type="text" id="input-jadwal-mapel" placeholder="Mata Pelajaran" class="sm:col-span-1 border-slate-300 rounded-md py-2 px-3">
+                    <button type="submit" class="sm:col-span-1 bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700">Tambah Jadwal</button>
+                </form>
+            </div>
+        </div>
+    </template>
 </body>
 </html>
+
